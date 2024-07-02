@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Image Display</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <img id="randomImage" src="" alt="Random Image">
+    <script>
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function displayRandomImage() {
+            const totalImages = 50;
+            const randomIndex = getRandomInt(1, totalImages);
+            const imagePath = `img/img (${randomIndex}).webp`;
+            document.getElementById('randomImage').src = imagePath;
+        }
+
+        // Display a random image when the page loads
+        window.onload = displayRandomImage;
+    </script>
+</body>
+</html>
