@@ -50,18 +50,89 @@
             max-height: calc(100vh - 60px); /* Adjusted for the header height */
             object-fit: contain;
         }
+        .name-input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: rgb(255, 255, 255);
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 2000;
+        }
+
+        .name-input-container label {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .name-input-container input {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .congratulations {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content:center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 255, 0, 0.438);
+            z-index: 3000;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="controls">
-        <div id="counter">Roll: 0</div>
-        <button onclick="changeImage()">Reroll Waifu</button>
+    <div class="controls" style="display: none;">
+        <div id="counter">Body Count: 0</div>
+        <button onclick="changeImage()">Roll</button>
+        <button onclick="acceptImage()">Claim</button>
     </div>
+
     <div class="image-container">
         <img id="randomImage" src="" alt="Random Image">
     </div>
+
+    <div class="name-input-container" id="nameInputContainer">
+        <label for="nameInput">Enter your anon nickname:</label>
+        <input type="text" id="nameInput" />
+        <button onclick="submitName()">Submit</button>
+    </div>
+
+    <div class="congratulations" id="congratulationsMessage" style="display: none;">
+        <p id="endScreen"></p>
+    </div>
+
     <script>
-        let rollCount = 0;
+        let rollCount = localStorage.getItem('rollCount') ? parseInt(localStorage.getItem('rollCount')) : 0;
+        let userName = localStorage.getItem('userName') || '';
+        let lastImage = localStorage.getItem('lastImage') || '';
+        let accepted = localStorage.getItem('accepted') === 'true';
+        let forced = localStorage.getItem('forced') === 'true';
 
         function getRandomInt(min, max) {
             min = Math.ceil(min);
@@ -70,22 +141,77 @@
         }
 
         function displayRandomImage() {
-            const totalImages = 57;
-            const randomIndex = getRandomInt(1, totalImages);
-            const imagePath = `img/img (${randomIndex}).webp`;
+            const totalImages = 60;
+            let randomIndex = getRandomInt(1, totalImages);
+
+            while ((rollCount < 1 && [4, 11, 13, 14, 16, 23, 37, 43, 53].includes(randomIndex)) 
+            || (rollCount < 3 && [17, 22, 26, 27, 28, 44].includes(randomIndex))
+            || (rollCount < 5 && [42, 59].includes(randomIndex))) {
+                randomIndex = getRandomInt(1, totalImages);
+            }
+
+            if ((rollCount > 20 && randomIndex === 47) 
+            || (rollCount > 25 && randomIndex === 19) 
+            || (rollCount > 30 && randomIndex === 17) 
+            || (rollCount > 35 && randomIndex === 42)
+            || (rollCount > 40 && randomIndex === 38)){
+                forced = true;
+                localStorage.setItem('forced', true);
+                acceptImage();
+            } 
+
+            const imagePath = `pg/img (${randomIndex}).webp`;
             document.getElementById('randomImage').src = imagePath;
+            localStorage.setItem('lastImage', imagePath);
         }
 
         function changeImage() {
             rollCount++;
+            localStorage.setItem('rollCount', rollCount);
             displayRandomImage();
             document.getElementById('counter').innerText = `Roll: ${rollCount}`;
         }
 
-        // Display a random image when the page loads
-        window.onload = displayRandomImage;
+        function acceptImage() {
+            document.querySelector('.controls').style.display = 'none';
+            document.getElementById('congratulationsMessage').style.display = 'flex'; 
+            if (forced){
+                document.getElementById("endScreen").innerHTML = userName + " was forced to marry this waifu!<br>Body Count: " + rollCount;
+            }else {
+                document.getElementById("endScreen").innerHTML = userName + " claimed this waifu!<br>Body Count: " + rollCount;
+            }
+            
+            localStorage.setItem('accepted', 'true');
+        }
+
+        function submitName() {
+            userName = document.getElementById('nameInput').value;
+            if (userName) {
+                localStorage.setItem('userName', userName);
+                defaultState();
+            }
+        }
+
+        function defaultState() {
+            document.getElementById('nameInputContainer').style.display = 'none';
+            document.querySelector('.controls').style.display = 'flex';
+            if (lastImage) {
+                document.getElementById('randomImage').src = lastImage;
+            } else {
+                displayRandomImage();
+            }
+            document.getElementById('counter').innerText = `Roll: ${rollCount}`;
+        }
+
+        // Initial page load
+        window.onload = function() {
+            if (userName) {
+                defaultState();
+            }
+            if (accepted) {
+                acceptImage();
+            }
+        }
     </script>
 </body>
 </html>
-
-
